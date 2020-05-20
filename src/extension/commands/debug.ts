@@ -18,7 +18,6 @@ import { DevToolsManager } from "../sdk/dev_tools";
 import { DartDebugSessionInformation } from "../utils/vscode/debug";
 
 export const debugSessions: DartDebugSessionInformation[] = [];
-// export let mostRecentAttachedProbablyReusableObservatoryUri: string;
 
 // As a workaround for https://github.com/Microsoft/vscode/issues/71651 we
 // will keep any events that arrive before their session "started" and then
@@ -542,12 +541,6 @@ export class DebugCommands {
 					});
 				}
 			}
-
-			// if (e.body.isProbablyReconnectable) {
-			// 	mostRecentAttachedProbablyReusableObservatoryUri = session.observatoryUri;
-			// } else {
-			// 	mostRecentAttachedProbablyReusableObservatoryUri = undefined;
-			// }
 		}
 	}
 
