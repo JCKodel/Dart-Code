@@ -22,7 +22,7 @@ export class FlutterDebugSession extends DartDebugSession {
 	private currentRunningAppId?: string;
 	private appHasStarted = false;
 	private appHasBeenToldToStopOrDetach = false;
-	private observatoryUri?: string;
+	private vmServiceUri?: string;
 	private isReloadInProgress = false;
 
 	// Allow flipping into stderr mode for red exceptions when we see the start/end of a Flutter exception dump.
@@ -33,11 +33,11 @@ export class FlutterDebugSession extends DartDebugSession {
 
 		this.sendStdOutToConsole = false;
 		this.allowWriteServiceInfo = false;
-		// We get the Observatory URI from the `flutter run` process. If we parse
+		// We get the VM service URI from the `flutter run` process. If we parse
 		// it out of verbose logging and connect to it, it'll be before Flutter is
 		// finished setting up and bad things can happen (like us sending events
 		// way too early).
-		this.parseObservatoryUriFromStdOut = false;
+		this.parseVmServiceUriFromStdOut = false;
 		this.requiresProgram = false;
 		this.logCategory = LogCategory.FlutterRun;
 
@@ -78,7 +78,7 @@ export class FlutterDebugSession extends DartDebugSession {
 			this.pollforMemoryMs = 1000;
 		}
 
-		// Normally for `flutter run` we don't allow terminating the pid we get from Observatory,
+		// Normally for `flutter run` we don't allow terminating the pid we get from the VM service,
 		// because it's on a remote device, however in the case of the flutter-tester, it is local
 		// and otherwise might be left hanging around.
 		// Unless, of course, we attached in which case we expect to detach by default.
@@ -93,12 +93,12 @@ export class FlutterDebugSession extends DartDebugSession {
 		this.runDaemon.registerForDaemonConnect((n) => this.recordAdditionalPid(n.pid));
 		this.runDaemon.registerForAppStart((n) => this.currentRunningAppId = n.appId);
 		this.runDaemon.registerForAppDebugPort(async (n) => {
-			this.observatoryUri = n.wsUri;
-			await this.connectToObservatoryIfReady();
+			this.vmServiceUri = n.wsUri;
+			await this.connectToVmServiceIfReady();
 		});
 		this.runDaemon.registerForAppStarted(async (n) => {
 			this.appHasStarted = true;
-			await this.connectToObservatoryIfReady();
+			await this.connectToVmServiceIfReady();
 			this.sendEvent(new Event("dart.launched"));
 		});
 		this.runDaemon.registerForAppStop((n) => {
@@ -197,9 +197,9 @@ export class FlutterDebugSession extends DartDebugSession {
 		return new FlutterRun(isAttach ? RunMode.Attach : RunMode.Run, args.flutterPath, args.flutterCustomRunScript, args.globalFlutterArgs || [], args.cwd, appArgs, { envOverrides: args.env, toolEnv: this.toolEnv }, args.flutterRunLogFile, logger, (url) => this.exposeUrl(url), this.maxLogLineLength);
 	}
 
-	private async connectToObservatoryIfReady() {
-		if (this.observatoryUri && this.appHasStarted && !this.vmService)
-			await this.initDebugger(this.observatoryUri);
+	private async connectToVmServiceIfReady() {
+		if (this.vmServiceUri && this.appHasStarted && !this.vmService)
+			await this.initDebugger(this.vmServiceUri);
 	}
 
 	protected async terminate(force: boolean): Promise<void> {
