@@ -15,5 +15,6 @@ export class DartDebugSessionInformation {
 	public readonly terminatingProgressPromise = new PromiseCompleter<void>();
 	public terminatingProgressReporter?: vs.Progress<{ message?: string; increment?: number; }>; // Set to undefined when launch finishes as a signal.
 	public readonly sessionStart: Date = new Date();
+	public hasEnded = false;
 	constructor(public readonly session: vs.DebugSession, public readonly debuggerType: string) { }
 }

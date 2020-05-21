@@ -14,7 +14,7 @@ import { config } from "../config";
 import { ServiceExtensionArgs, timeDilationNormal, timeDilationSlow, VmServiceExtensions } from "../flutter/vm_service_extensions";
 import { DebuggerType } from "../providers/debug_config_provider";
 import { PubGlobal } from "../pub/global";
-import { DevToolsManager } from "../sdk/dev_tools";
+import { DevToolsManager } from "../sdk/dev_tools/manager";
 import { DartDebugSessionInformation } from "../utils/vscode/debug";
 
 export const debugSessions: DartDebugSessionInformation[] = [];
@@ -127,7 +127,7 @@ export class DebugCommands {
 			const page = options ? options.page : undefined;
 
 			if (session.vmServiceUri) {
-				return this.devTools.spawnForSession(session as DartDebugSessionInformation & { vmServiceUri: string }, reuseWindows, notify, page);
+				return this.devTools.spawnForSession(session as DartDebugSessionInformation & { vmServiceUri: string }, { reuseWindows, notify, page });
 			} else if (session.session.configuration.noDebug) {
 				vs.window.showInformationMessage("You must start your app with debugging in order to use DevTools.");
 			} else {
@@ -373,6 +373,7 @@ export class DebugCommands {
 
 		// Grab the session and remove it from the list so we don't try to interact with it anymore.
 		const session = debugSessions[sessionIndex];
+		session.hasEnded = true;
 		debugSessions.splice(sessionIndex, 1);
 
 		this.clearProgressIndicators(session);
